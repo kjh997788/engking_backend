@@ -28,7 +28,6 @@ public class Member {
     private String phone;
     private LocalDate birthday;
     private LocalDateTime signUpTime;
-    private String profileImgUrl;
     private String intro;
     @Enumerated(EnumType.STRING)
     private Authority authority;
