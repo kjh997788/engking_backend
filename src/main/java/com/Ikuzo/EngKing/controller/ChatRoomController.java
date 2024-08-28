@@ -1,7 +1,7 @@
 package com.Ikuzo.EngKing.controller;
 
 import com.Ikuzo.EngKing.entity.ChatRoom;
-import com.Ikuzo.EngKing.entity.ChatMessage;
+import com.Ikuzo.EngKing.entity.ChatMessages;
 import com.Ikuzo.EngKing.service.ChatRoomService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -21,14 +21,10 @@ public class ChatRoomController {
     }
 
     @PostMapping("/message/{chatRoomId}")
-    public ChatMessage addMessageToChatRoom(@PathVariable String chatRoomId, @RequestBody ChatMessage message) {
-        return chatRoomService.addMessageToChatRoom(chatRoomId, message);
+    public ChatMessages addMessageToChatRoom(@PathVariable String chatRoomId, @RequestBody ChatMessages messages) {
+        return chatRoomService.addMessageToChatRoom(chatRoomId, messages);
     }
 
-    @GetMapping("/member/{memberId}")
-    public List<ChatRoom> getChatRoomsByMemberId(@PathVariable String memberId) {
-        return chatRoomService.getChatRoomsByMemberId(memberId);
-    }
 
     // 추가적인 엔드포인트 정의...
 }

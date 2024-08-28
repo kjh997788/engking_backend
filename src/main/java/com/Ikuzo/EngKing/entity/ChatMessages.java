@@ -6,13 +6,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Data
-public class ChatRoom {
+public class ChatMessages {
 
-    private String chatRoomId;  // DynamoDB의 파티션 키
-    private String memberId;    // DynamoDB의 정렬 키
-    private String difficulty;
-    private String topic;
-    private LocalDateTime createdTime;
+    private String chatRoomId;    // DynamoDB의 파티션 키
+    private LocalDateTime messageTime;  // DynamoDB의 정렬 키
+    private String messageId;
+    private String senderId;
+    private String messageText;
+    private String audioFileUrl;
 
     // LocalDateTime과 String 간 변환을 위한 헬퍼 메서드
     public static class LocalDateTimeConverter {
