@@ -9,7 +9,7 @@ import java.time.format.DateTimeFormatter;
 public class ChatRoom {
 
     private String chatRoomId;  // DynamoDB의 파티션 키
-    private String memberId;    // DynamoDB의 정렬 키
+    private String memberId;
     private String difficulty;
     private String topic;
     private LocalDateTime createdTime;

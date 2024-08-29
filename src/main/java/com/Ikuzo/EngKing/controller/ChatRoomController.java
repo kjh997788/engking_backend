@@ -2,20 +2,21 @@ package com.Ikuzo.EngKing.controller;
 
 import com.Ikuzo.EngKing.dto.ChatRoomRequestDto;
 import com.Ikuzo.EngKing.dto.ChatRoomResponseDto;
-import com.Ikuzo.EngKing.entity.ChatRoom;
 import com.Ikuzo.EngKing.entity.ChatMessages;
 import com.Ikuzo.EngKing.service.ChatRoomService;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+@Slf4j
 @RestController
-@RequestMapping("/api/chatroom")
+@RequiredArgsConstructor
+@RequestMapping("/chatroom")
 public class ChatRoomController {
 
-    @Autowired
-    private ChatRoomService chatRoomService;
+    private final ChatRoomService chatRoomService;
 
     @PostMapping("/create")
     public ResponseEntity<ChatRoomResponseDto> createChatRoom(@RequestBody ChatRoomRequestDto chatRoomRequestDto) {
@@ -30,12 +31,6 @@ public class ChatRoomController {
         else
             return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(chatRoomResponseDto);
     }
-
-    @PostMapping("/message/{chatRoomId}")
-    public ChatMessages addMessageToChatRoom(@PathVariable String chatRoomId, @RequestBody ChatMessages messages) {
-        return chatRoomService.addMessageToChatRoom(chatRoomId, messages);
-    }
-
 
     // 추가적인 엔드포인트 정의...
 }
