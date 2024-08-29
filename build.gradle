@@ -44,7 +44,7 @@ dependencies {
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
 	// AWS SDK v2 의존성
-	implementation(platform 'software.amazon.awssdk:bom:2.20.56') // ?
+	implementation(platform 'software.amazon.awssdk:bom:2.20.56') // aws sdk2 버전
 	implementation 'software.amazon.awssdk:dynamodb'  // AWS SDK v2 for DynamoDB
 	implementation 'software.amazon.awssdk:auth'      // AWS SDK v2 for Authentication
 	implementation 'software.amazon.awssdk:regions'   // AWS SDK v2 for Regions

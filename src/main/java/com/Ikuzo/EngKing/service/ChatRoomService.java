@@ -1,16 +1,14 @@
 package com.Ikuzo.EngKing.service;
 
+import com.Ikuzo.EngKing.dto.ChatRoomResponseDto;
 import com.Ikuzo.EngKing.entity.ChatRoom;
 import com.Ikuzo.EngKing.entity.ChatMessages;
-import com.Ikuzo.EngKing.dto.LangchainMessageRequestDto;  // 수정된 DTO 클래스 임포트
+import com.Ikuzo.EngKing.dto.LangchainMessageRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import software.amazon.awssdk.services.dynamodb.DynamoDbClient;
-import software.amazon.awssdk.services.dynamodb.model.AttributeValue;
-import software.amazon.awssdk.services.dynamodb.model.GetItemRequest;
-import software.amazon.awssdk.services.dynamodb.model.GetItemResponse;
-import software.amazon.awssdk.services.dynamodb.model.PutItemRequest;
+import software.amazon.awssdk.services.dynamodb.model.*;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -29,19 +27,52 @@ public class ChatRoomService {
         this.restTemplate = restTemplate;
     }
 
-    public ChatRoom createChatRoom(String memberId, String topic, String difficulty) {
+    public ChatRoomResponseDto createChatRoom(String memberId, String topic, String difficulty) {
+        LocalDateTime rightNow = LocalDateTime.now();
+        String chatRoomId = memberId + "_" + rightNow.toString();
+
         ChatRoom chatRoom = new ChatRoom();
-        chatRoom.setChatRoomId(memberId + "_" + LocalDateTime.now().toString()); // DynamoDB의 HashKey로 사용
+        chatRoom.setChatRoomId(chatRoomId); // DynamoDB의 HashKey로 사용
         chatRoom.setMemberId(memberId); // DynamoDB의 RangeKey로 사용
         chatRoom.setTopic(topic);
         chatRoom.setDifficulty(difficulty);
-        chatRoom.setCreatedTime(LocalDateTime.now());
-
+        chatRoom.setCreatedTime(rightNow);
         // DynamoDB에 ChatRoom 저장
-        saveChatRoomToDynamoDB(chatRoom);
+        boolean dynamoDBResponse = saveChatRoomToDynamoDB(chatRoom);
+        // 컨트롤러에 반환 객체
+        ChatRoomResponseDto chatRoomResponseDto = new ChatRoomResponseDto();
+        chatRoomResponseDto.setChatRoomId(chatRoomId);
+        chatRoomResponseDto.setSuccess(dynamoDBResponse);
+        chatRoomResponseDto.setCreatedTime(rightNow);
 
-        return chatRoom;
+        return chatRoomResponseDto;
     }
+    
+    // 채팅방 생성됨을 DynamoDB에 저장
+    private boolean saveChatRoomToDynamoDB(ChatRoom chatRoom) {
+        Map<String, AttributeValue> item = new HashMap<>();
+        item.put("ChatRoomId", AttributeValue.builder().s(chatRoom.getChatRoomId()).build());
+        item.put("MemberId", AttributeValue.builder().s(chatRoom.getMemberId()).build());
+        item.put("Difficulty", AttributeValue.builder().s(chatRoom.getDifficulty()).build());
+        item.put("Topic", AttributeValue.builder().s(chatRoom.getTopic()).build());
+        item.put("CreatedTime", AttributeValue.builder().s(ChatRoom.LocalDateTimeConverter.convert(chatRoom.getCreatedTime())).build());
+
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName("EngKing-ChatRoom")
+                .item(item)
+                .build();
+
+        try {
+            PutItemResponse response = dynamoDbClient.putItem(request);
+            // 예외가 발생하지 않으면 저장이 성공한 것입니다.
+            return true;
+        } catch (Exception e) {
+            // 예외가 발생하면 저장에 실패한 것입니다.
+            System.err.println("Failed to save chat room to DynamoDB: " + e.getMessage());
+            return false;
+        }
+    }
+
 
     public ChatMessages addMessageToChatRoom(String chatRoomId, ChatMessages message) {
         ChatRoom chatRoom = getChatRoomFromDynamoDB(chatRoomId, message.getSenderId());
@@ -62,22 +93,6 @@ public class ChatRoomService {
         } else {
             throw new RuntimeException("Chat room not found with id: " + chatRoomId);
         }
-    }
-
-    private void saveChatRoomToDynamoDB(ChatRoom chatRoom) {
-        Map<String, AttributeValue> item = new HashMap<>();
-        item.put("ChatRoomId", AttributeValue.builder().s(chatRoom.getChatRoomId()).build());
-        item.put("MemberId", AttributeValue.builder().s(chatRoom.getMemberId()).build());
-        item.put("Difficulty", AttributeValue.builder().s(chatRoom.getDifficulty()).build());
-        item.put("Topic", AttributeValue.builder().s(chatRoom.getTopic()).build());
-        item.put("CreatedTime", AttributeValue.builder().s(ChatRoom.LocalDateTimeConverter.convert(chatRoom.getCreatedTime())).build());
-
-        PutItemRequest request = PutItemRequest.builder()
-                .tableName("EngKing-ChatRoom")
-                .item(item)
-                .build();
-
-        dynamoDbClient.putItem(request);
     }
 
     private void saveChatMessageToDynamoDB(ChatMessages chatMessage) {
