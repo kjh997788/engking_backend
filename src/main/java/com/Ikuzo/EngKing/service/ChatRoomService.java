@@ -1,10 +1,7 @@
 package com.Ikuzo.EngKing.service;
 
 import com.Ikuzo.EngKing.dto.ChatRoomResponseDto;
-import com.Ikuzo.EngKing.dto.LangchainMessageResponseDto;
 import com.Ikuzo.EngKing.entity.ChatRoom;
-import com.Ikuzo.EngKing.entity.ChatMessages;
-import com.Ikuzo.EngKing.dto.LangchainMessageRequestDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
