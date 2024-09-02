@@ -16,25 +16,25 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Service
-public class QuestionService {
+public class QuizService {
 
     private final DynamoDbClient dynamoDbClient;
     private final RestTemplate restTemplate;
 
     @Autowired
-    public QuestionService(DynamoDbClient dynamoDbClient, RestTemplate restTemplate) {
+    public QuizService(DynamoDbClient dynamoDbClient, RestTemplate restTemplate) {
         this.dynamoDbClient = dynamoDbClient;
         this.restTemplate = restTemplate;
     }
 
-    public QuestionResponseDto createChatRoom(String memberId, String topic, String difficulty) {
+    public QuestionResponseDto createQuizRoom(String memberId, String quiz_type, String difficulty) {
         LocalDateTime rightNow = LocalDateTime.now().withNano(0);
         String chatRoomId = memberId + "_" + rightNow.toString();
 
         ChatRoom chatRoom = new ChatRoom();
         chatRoom.setChatRoomId(chatRoomId); // DynamoDB의 HashKey로 사용
         chatRoom.setMemberId(memberId); // DynamoDB의 RangeKey로 사용
-        chatRoom.setTopic(topic);
+        chatRoom.setQuiz_type(quiz_type);
         chatRoom.setDifficulty(difficulty);
         chatRoom.setCreatedTime(rightNow);
         // DynamoDB에 ChatRoom 저장
@@ -55,10 +55,8 @@ public class QuestionService {
         item.put("ChatRoomId", AttributeValue.builder().s(chatRoom.getChatRoomId()).build());
         item.put("MemberId", AttributeValue.builder().s(chatRoom.getMemberId()).build());
         item.put("Difficulty", AttributeValue.builder().s(chatRoom.getDifficulty()).build());
-        item.put("Topic", AttributeValue.builder().s(chatRoom.getTopic()).build());
+        item.put("Quiz_type", AttributeValue.builder().s(chatRoom.getQuiz_type()).build());
         item.put("CreatedTime", AttributeValue.builder().s(ChatRoom.LocalDateTimeConverter.convert(chatRoom.getCreatedTime())).build());
-//        item.put("Score", AttributeValue.builder().s("none").build());
-//        item.put("Feedback", AttributeValue.builder().s("none").build());
 
         PutItemRequest request = PutItemRequest.builder()
                 .tableName("EngKing-ChatRoom")
@@ -77,11 +75,11 @@ public class QuestionService {
     }
 
     // 답변 전송 및 다음 질문 요청
-    public String createQuestion(String memberId, String chatRoomId, String input, String difficulty, String scenario, Boolean first) {
+    public String createQuiz(String memberId, String chatRoomId, String input, String difficulty, String quiz_type, Boolean first) {
 
-        String url = "http://13.231.43.88:5000/chat";
-        String requestBody = String.format("{\"user_id\": \"%s\", \"conversation_id\": \"%s\", \"input\": \"%s\", \"difficulty\": \"%s\", \"scenario\": \"%s\", \"first\": \"%s\"}",
-                memberId, chatRoomId, input, difficulty, scenario, first);
+        String url = "http://13.231.43.88:5000/quiz";
+        String requestBody = String.format("{\"user_id\": \"%s\", \"conversation_id\": \"%s\", \"input\": \"%s\", \"difficulty\": \"%s\", \"quiz_type\": \"%s\", \"first\": \"%s\"}",
+                memberId, chatRoomId, input, difficulty, quiz_type, first);
 
         // HTTP 헤더 설정
         HttpHeaders headers = new HttpHeaders();
@@ -114,7 +112,7 @@ public class QuestionService {
             return null;
         }
     }
-    
+
     // 채팅 메세지 내역 저장
     public boolean saveChatMessageToDynamoDB(String chatRoomId, String messageTime, String messageId, String senderId, String messageText, String audioFileUrl) {
         Map<String, AttributeValue> item = new HashMap<>();
@@ -149,8 +147,8 @@ public class QuestionService {
 
 
     // 대화 종료
-    public QuestionResponseDto endQuestion(String memberId, String chatRoomId) {
-        String url = "http://13.231.43.88:5000/chat/evaluate";
+    public QuestionResponseDto endQuiz(String memberId, String chatRoomId) {
+        String url = "http://13.231.43.88:5000/quiz/evaluate";
         String requestBody = String.format("{\"user_id\": \"%s\", \"conversation_id\": \"%s\"}",
                 memberId, chatRoomId);
 

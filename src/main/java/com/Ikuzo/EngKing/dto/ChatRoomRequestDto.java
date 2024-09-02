@@ -19,5 +19,6 @@ public class ChatRoomRequestDto {
     private String memberId;    // DynamoDB의 정렬 키
     private String difficulty;
     private String topic;
+    private String quiz_type;
     private LocalDateTime createdTime;
 }

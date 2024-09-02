@@ -6,18 +6,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 @Data
-public class ChatRoom {
-
-    private String chatRoomId;  // DynamoDB의 파티션 키
+public class QuizRoom {
+    private String quizRoomId;  // DynamoDB의 파티션 키
     private String memberId;  // DynamoDB의 정렬 키
     private String difficulty;
-    private String topic;
     private String quiz_type;
     private LocalDateTime createdTime;
     private String score;
     private String feedback;
 
-    // LocalDateTime과 String 간 변환을 위한 헬퍼 메서드
     public static class LocalDateTimeConverter {
         private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
@@ -29,4 +26,5 @@ public class ChatRoom {
             return LocalDateTime.parse(stringValue, FORMATTER);
         }
     }
+
 }
