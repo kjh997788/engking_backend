@@ -70,7 +70,7 @@ public class ChatRoomService {
 //        }
 //    }
 
-
+    // 회원 번호로 채팅방 내역 조회
     public List<ChatRoomResponseDto> selectChatRoomsByMemberId(String memberId) {
         // DynamoDB에서 MemberId로 ChatRoom 조회
         Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
@@ -107,6 +107,8 @@ public class ChatRoomService {
                 responseDto.setCreatedTime(item.get("CreatedTime") != null ?
                         ChatRoom.LocalDateTimeConverter.unconvert(item.get("CreatedTime").s()) : null);
 
+                responseDto.setQueryResult(true);
+
                 responseDtos.add(responseDto);
             }
 
@@ -118,6 +120,41 @@ public class ChatRoomService {
         }
     }
 
+    // ChatRoomId와 MemberId로 ChatRoom 삭제
+    public ChatRoomResponseDto deleteChatRoomByChatRoomIdAndMemberId(String chatRoomId, String memberId) {
+        // 삭제할 항목의 키 구성
+        Map<String, AttributeValue> key = new HashMap<>();
+        key.put("ChatRoomId", AttributeValue.builder().s(chatRoomId).build());
+        key.put("MemberId", AttributeValue.builder().s(memberId).build());
 
+        // DeleteItem 요청 생성
+        DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                .tableName("EngKing-ChatRoom")
+                .key(key)
+                .build();
+
+        try {
+            DeleteItemResponse deleteResponse = dynamoDbClient.deleteItem(deleteRequest);
+
+            // 응답 처리 및 DTO 생성
+            ChatRoomResponseDto responseDto = new ChatRoomResponseDto();
+            responseDto.setChatRoomId(chatRoomId);
+            responseDto.setMemberId(memberId);
+            responseDto.setQueryResult(true);  // 삭제 성공
+
+            return responseDto;
+
+        } catch (Exception e) {
+            System.err.println("Failed to delete chat room by ChatRoomId and MemberId: " + e.getMessage());
+
+            // 예외 발생 시 실패한 상태를 담은 DTO 반환
+            ChatRoomResponseDto responseDto = new ChatRoomResponseDto();
+            responseDto.setChatRoomId(chatRoomId);
+            responseDto.setMemberId(memberId);
+            responseDto.setQueryResult(false);  // 삭제 실패
+
+            return responseDto;
+        }
+    }
 
 }

@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 @JsonInclude(JsonInclude.Include.NON_NULL) // null인 필드는 JSON에서 제외
 public class ChatMessageRequestDto {
 
+    private String memberId;
     private String chatRoomId;    // DynamoDB의 파티션 키
     private LocalDateTime messageTime;  // DynamoDB의 정렬 키
     private String messageId;

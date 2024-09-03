@@ -24,13 +24,15 @@ public class ChatMessageController {
 //        return chatMessageService.addMessageToChatRoom(chatRoomId, messages);
 //    }
 
-    @PostMapping("/chatroomid")
-    public ResponseEntity<List<ChatMessageResponseDto>> selectChatRoomsByMemberId(@RequestBody ChatMessageRequestDto chatMessageRequestDto) {
+    @PostMapping("/allmessages")
+    public ResponseEntity<List<ChatMessageResponseDto>> selectChatRoomsByChatRoomId(@RequestBody ChatMessageRequestDto chatMessageRequestDto) {
+        String memberId = chatMessageRequestDto.getMemberId();
         String chatRoomId = chatMessageRequestDto.getChatRoomId();
 
         List<ChatMessageResponseDto> chatRoomResponseDtoLists = chatMessageService.selectChatMessagesByChatRoomId(chatRoomId);
 
         return ResponseEntity.status(HttpStatus.OK).body(chatRoomResponseDtoLists);
     }
+
 
 }

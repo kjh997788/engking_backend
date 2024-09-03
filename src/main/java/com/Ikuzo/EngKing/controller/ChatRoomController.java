@@ -2,7 +2,6 @@ package com.Ikuzo.EngKing.controller;
 
 import com.Ikuzo.EngKing.dto.ChatRoomRequestDto;
 import com.Ikuzo.EngKing.dto.ChatRoomResponseDto;
-import com.Ikuzo.EngKing.entity.ChatMessages;
 import com.Ikuzo.EngKing.service.ChatRoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,13 +34,23 @@ public class ChatRoomController {
 //    }
 
 
-    @PostMapping("/memberid")
+    @PostMapping("/chatroomlist")
     public ResponseEntity<List<ChatRoomResponseDto>> selectChatRoomsByMemberId(@RequestBody ChatRoomRequestDto chatRoomRequestDto) {
         String memberId = chatRoomRequestDto.getMemberId();
 
         List<ChatRoomResponseDto> chatRoomResponseDtoLists = chatRoomService.selectChatRoomsByMemberId(memberId);
 
         return ResponseEntity.status(HttpStatus.OK).body(chatRoomResponseDtoLists);
+    }
+
+    @PostMapping("/deletechatroom")
+    public ResponseEntity<ChatRoomResponseDto> deleteChatRoomByChatRoomId(@RequestBody ChatRoomRequestDto chatRoomRequestDto) {
+        String memberId = chatRoomRequestDto.getMemberId();
+        String chatRoomId = chatRoomRequestDto.getChatRoomId();
+
+        ChatRoomResponseDto chatRoomResponseDto = chatRoomService.deleteChatRoomByChatRoomIdAndMemberId(memberId, chatRoomId);
+
+        return ResponseEntity.status(HttpStatus.OK).body(chatRoomResponseDto);
     }
 
 }

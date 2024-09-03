@@ -122,6 +122,8 @@ public class ChatMessageService {
                 responseDto.setSenderId(item.get("SenderId") != null ? item.get("SenderId").s() : null);
                 responseDto.setMessageText(item.get("MessageText") != null ? item.get("MessageText").s() : null);
                 responseDto.setAudioFileUrl(item.get("AudioFileUrl") != null ? item.get("AudioFileUrl").s() : null);
+                responseDto.setScore(item.get("Score") != null ? item.get("Score").s() : null);
+                responseDto.setFeedback(item.get("Feedback") != null ? item.get("Feedback").s() : null);
 
                 responseDtos.add(responseDto);
             }

@@ -14,6 +14,8 @@ public class ChatMessages {
     private String senderId;
     private String messageText;
     private String audioFileUrl;
+    private String score;
+    private String feedback;
 
     // LocalDateTime과 String 간 변환을 위한 헬퍼 메서드
     public static class LocalDateTimeConverter {

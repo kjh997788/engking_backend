@@ -21,5 +21,7 @@ public class ChatRoomResponseDto {
     private String topic;
     private String quiz_type;
     private LocalDateTime createdTime;
+    
+    private boolean queryResult; // CRUD 결과
 
 }

@@ -3,6 +3,7 @@ package com.Ikuzo.EngKing.controller;
 import com.Ikuzo.EngKing.dto.QuestionRequestDto;
 import com.Ikuzo.EngKing.dto.QuestionResponseDto;
 import com.Ikuzo.EngKing.service.QuestionService;
+import com.Ikuzo.EngKing.service.QuizService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -21,6 +22,7 @@ import java.time.LocalDateTime;
 public class QuestionController {
 
     private final QuestionService questionService;
+    private final QuizService quizService;
 
     @PostMapping("/firstquestion")
     public ResponseEntity<QuestionResponseDto> createFirstQuestion(@RequestBody QuestionRequestDto questionRequestDto) {
@@ -43,7 +45,7 @@ public class QuestionController {
                     questionResponseDto.getChatRoomId(),
                     messageTime,
                     messageId,
-                    memberId,  // 발신자 == 사용자
+                    "AI",
                     langChainMessage,
                     audioUrl // 오디오 파일 URL이 없는 경우 null 처리
             );
@@ -108,7 +110,7 @@ public class QuestionController {
                 chatRoomId,
                 QuestionMessageTime,
                 nextMessageId,
-                memberId,
+                "AI",
                 nextQuestion,
                 questionAudioUrl // 오디오 파일 URL이 없는 경우 null 처리
         );
@@ -134,14 +136,17 @@ public class QuestionController {
         String chatRoomId = questionRequestDto.getChatRoomId();
         String messageId = questionRequestDto.getMessageId();
         Boolean endRequest = questionRequestDto.isEndRequest();
+        String AnswerAudioUrl = null;
 
         if (endRequest) {
             QuestionResponseDto questionResponseDto = questionService.endQuestion(memberId, chatRoomId);
+            String messageTime = LocalDateTime.now().withNano(0).toString();
 
             if (questionResponseDto != null && questionResponseDto.getScore() != null && questionResponseDto.getFeedback() != null) {
                 boolean updateSuccess = questionService.updateChatRoomScoreAndFeedback(chatRoomId, memberId, questionResponseDto.getScore(), questionResponseDto.getFeedback());
+                boolean updateMessageSuccess = quizService.saveScoreAndFeedbackToDynamoDB(chatRoomId, messageTime, messageId, "AI", AnswerAudioUrl, questionResponseDto.getScore(), questionResponseDto.getFeedback());
 
-                if (!updateSuccess) {
+                if (!updateSuccess || !updateMessageSuccess) {
                     log.error("Failed to update score and feedback in DynamoDB.");
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
                 }

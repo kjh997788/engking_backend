@@ -21,5 +21,7 @@ public class ChatMessageResponseDto {
     private String senderId;
     private String messageText;
     private String audioFileUrl;
+    private String score;
+    private String feedback;
 
 }

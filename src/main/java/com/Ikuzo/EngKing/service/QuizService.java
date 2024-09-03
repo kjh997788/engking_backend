@@ -220,7 +220,37 @@ public class QuizService {
         }
     }
 
+    // 채팅 메세지 내역 저장
+    public boolean saveScoreAndFeedbackToDynamoDB(String chatRoomId, String messageTime, String messageId, String senderId, String audioFileUrl, String score, String feedback) {
+        Map<String, AttributeValue> item = new HashMap<>();
 
+        item.put("ChatRoomId", AttributeValue.builder().s(chatRoomId).build());
+        item.put("MessageTime", AttributeValue.builder().s(messageTime).build());
+        item.put("MessageId", AttributeValue.builder().s(messageId).build());
+        item.put("SenderId", AttributeValue.builder().s(senderId).build());
+        // Only add the AudioFileUrl if it is not null
+        if (audioFileUrl != null) {
+            item.put("AudioFileUrl", AttributeValue.builder().s(audioFileUrl).build());
+        }
+        item.put("Score", AttributeValue.builder().s(score).build());
+        item.put("Feedback", AttributeValue.builder().s(feedback).build());
+
+
+        PutItemRequest request = PutItemRequest.builder()
+                .tableName("EngKing-ChatMessages")
+                .item(item)
+                .build();
+
+        try {
+            dynamoDbClient.putItem(request);
+            // If no exception is thrown, saving is successful
+            return true;
+        } catch (Exception e) {
+            // If an exception is thrown, saving failed
+            System.err.println("Failed to save chat message to DynamoDB: " + e.getMessage());
+            return false;
+        }
+    }
 
 
     // 추가적인 비즈니스 로직 구현...
