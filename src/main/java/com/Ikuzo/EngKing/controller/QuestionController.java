@@ -2,8 +2,7 @@ package com.Ikuzo.EngKing.controller;
 
 import com.Ikuzo.EngKing.dto.QuestionRequestDto;
 import com.Ikuzo.EngKing.dto.QuestionResponseDto;
-import com.Ikuzo.EngKing.service.QuestionService;
-import com.Ikuzo.EngKing.service.QuizService;
+import com.Ikuzo.EngKing.service.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -23,6 +22,9 @@ public class QuestionController {
 
     private final QuestionService questionService;
     private final QuizService quizService;
+    private final TranscribeService transcribeService;
+    private final PollyService pollyService;
+    private final S3Service s3Service;
 
     @PostMapping("/firstquestion")
     public ResponseEntity<QuestionResponseDto> createFirstQuestion(@RequestBody QuestionRequestDto questionRequestDto) {
@@ -56,6 +58,19 @@ public class QuestionController {
                 return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
             }
 
+            //테스트 코드
+            Boolean pollySuccess = pollyService.synthesizeTextAndUploadToS3(memberId, questionResponseDto.getChatRoomId(), messageId, langChainMessage);
+
+            if (pollySuccess) {
+                // Polly 작업이 완료된 후에 S3 URL 생성
+                String audioFileUrl = s3Service.generatePreSignedUrl(memberId, questionResponseDto.getChatRoomId(), messageId);
+                questionResponseDto.setAudioFileUrl(audioFileUrl);
+            } else {
+                log.error("Failed to synthesize text and upload to S3.");
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            }
+            // polly 종료
+            
             questionResponseDto.setFirstQuestion(langChainMessage);
             questionResponseDto.setMessageId(messageId);
             return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
@@ -76,7 +91,26 @@ public class QuestionController {
         String memberId = questionRequestDto.getMemberId();
         String chatRoomId = questionRequestDto.getChatRoomId();
         String messageId = questionRequestDto.getMessageId();
-        String messageText = questionRequestDto.getMessageText();
+//        String messageText = questionRequestDto.getMessageText();
+// 테스트 코드 - transcribe 시작
+        Boolean transcribeStarted = transcribeService.startTranscriptionJob(memberId, chatRoomId, messageId);
+
+        if (!transcribeStarted) {
+            log.error("Failed to start transcription job.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+        // Transcribe 작업이 완료될 때까지 대기
+        boolean isTranscribeCompleted = transcribeService.waitForTranscriptionToComplete(memberId, chatRoomId, messageId);
+        if (!isTranscribeCompleted) {
+            log.error("Transcription job did not complete successfully.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+
+        // Transcribe 작업이 완료된 후 S3에서 텍스트 가져오기
+        String messageText = s3Service.getTranscriptFromS3(memberId, chatRoomId, messageId);
+
+        // 정상 코드
         String topic = questionRequestDto.getTopic();
         String difficulty = questionRequestDto.getDifficulty();
 
@@ -120,12 +154,26 @@ public class QuestionController {
             log.error("Failed to save next question to DynamoDB.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
-
         QuestionResponseDto questionResponseDto = new QuestionResponseDto();
+        
+        // 테스트 코드
+        Boolean pollySuccess = pollyService.synthesizeTextAndUploadToS3(memberId, chatRoomId, nextMessageId, nextQuestion);
+        if (pollySuccess) {
+            // Polly 작업이 완료된 후에 S3 URL 생성
+            String audioFileUrl = s3Service.generatePreSignedUrl(memberId, chatRoomId, messageId);
+            questionResponseDto.setAudioFileUrl(audioFileUrl);
+        } else {
+            log.error("Failed to synthesize text and upload to S3.");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+        // polly 종료
+        
         questionResponseDto.setChatRoomId(chatRoomId);
         questionResponseDto.setMemberId(memberId);
         questionResponseDto.setMessageId(nextMessageId);
         questionResponseDto.setNextQuestion(nextQuestion);
+        // 나중에 수정 필요
+        questionResponseDto.setAudioFileUrl(s3Service.generatePreSignedUrl(memberId, chatRoomId, nextMessageId));
         questionResponseDto.setCreatedTime(LocalDateTime.now().withNano(0));
         questionResponseDto.setSuccess(true);
         return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
@@ -152,6 +200,9 @@ public class QuestionController {
                 boolean updateSuccess = questionService.updateChatRoomScoreAndFeedback(chatRoomId, memberId, questionResponseDto.getScore(), questionResponseDto.getFeedback());
                 boolean updateMessageSuccess = quizService.saveScoreAndFeedbackToDynamoDB(chatRoomId, messageTime, nextMessageId, "AI", AnswerAudioUrl, questionResponseDto.getScore(), questionResponseDto.getFeedback());
 
+                // 테스트 코드 추가 삭제 필요
+                Boolean polly = pollyService.synthesizeTextAndUploadToS3(memberId, chatRoomId, nextMessageId, questionResponseDto.getFeedback());
+                
                 if (!updateSuccess || !updateMessageSuccess) {
                     log.error("Failed to update score and feedback in DynamoDB.");
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
@@ -162,6 +213,9 @@ public class QuestionController {
                 questionResponseDto.setMessageId(nextMessageId);
                 questionResponseDto.setMessageTime(LocalDateTime.now().withNano(0));
                 questionResponseDto.setSuccess(true);
+
+                // 테스트 코드 추가 삭제 필요
+                questionResponseDto.setAudioFileUrl(s3Service.generatePreSignedUrl(memberId, chatRoomId, nextMessageId));
 
                 return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
             } else {

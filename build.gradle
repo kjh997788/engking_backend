@@ -45,10 +45,16 @@ dependencies {
 
 	// AWS SDK v2 의존성
 	implementation(platform 'software.amazon.awssdk:bom:2.20.56') // aws sdk2 버전
-	implementation 'software.amazon.awssdk:dynamodb'  // AWS SDK v2 for DynamoDB
-	implementation 'software.amazon.awssdk:auth'      // AWS SDK v2 for Authentication
-	implementation 'software.amazon.awssdk:regions'   // AWS SDK v2 for Regions
-	implementation 'software.amazon.awssdk:s3'        // AWS SDK v2 for S3
+	implementation 'software.amazon.awssdk:dynamodb'    // AWS SDK v2 for DynamoDB
+	implementation 'software.amazon.awssdk:auth'        // AWS SDK v2 for Authentication
+	implementation 'software.amazon.awssdk:regions'     // AWS SDK v2 for Regions
+	implementation 'software.amazon.awssdk:s3'          // AWS SDK v2 for S3
+	implementation 'software.amazon.awssdk:transcribe'  // AWS SDK v2 for Transcribe
+	implementation 'software.amazon.awssdk:polly'       // AWS SDK v2 for Polly
+	implementation 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+	implementation 'com.fasterxml.jackson.core:jackson-annotations:2.15.2'
+	implementation 'com.fasterxml.jackson.core:jackson-core:2.15.2'
+
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 }

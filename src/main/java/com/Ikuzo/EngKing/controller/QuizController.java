@@ -2,11 +2,15 @@ package com.Ikuzo.EngKing.controller;
 
 import com.Ikuzo.EngKing.dto.QuestionRequestDto;
 import com.Ikuzo.EngKing.dto.QuestionResponseDto;
+import com.Ikuzo.EngKing.service.PollyService;
 import com.Ikuzo.EngKing.service.QuizService;
+import com.Ikuzo.EngKing.service.S3Service;
+import com.Ikuzo.EngKing.service.TranscribeService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -21,6 +25,9 @@ import java.time.LocalDateTime;
 public class QuizController {
 
     private final QuizService quizService;
+    private final TranscribeService transcribeService;
+    private final PollyService pollyService;
+    private final S3Service s3Service;
 
     @PostMapping("/createquiz")
     public ResponseEntity<QuestionResponseDto> createFirstQuiz(@RequestBody QuestionRequestDto questionRequestDto) {
@@ -43,7 +50,7 @@ public class QuizController {
                     questionResponseDto.getChatRoomId(),
                     messageTime,
                     messageId,
-                    memberId,  // 발신자 == 사용자
+                    "AI",
                     langChainMessage,
                     audioUrl // 오디오 파일 URL이 없는 경우 null 처리
             );
@@ -108,7 +115,7 @@ public class QuizController {
                 chatRoomId,
                 QuestionMessageTime,
                 nextMessageId,
-                memberId,
+                "AI",
                 nextQuestion,
                 questionAudioUrl // 오디오 파일 URL이 없는 경우 null 처리
         );
