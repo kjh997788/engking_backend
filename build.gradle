@@ -48,6 +48,7 @@ dependencies {
 	implementation 'software.amazon.awssdk:dynamodb'  // AWS SDK v2 for DynamoDB
 	implementation 'software.amazon.awssdk:auth'      // AWS SDK v2 for Authentication
 	implementation 'software.amazon.awssdk:regions'   // AWS SDK v2 for Regions
+	implementation 'software.amazon.awssdk:s3'        // AWS SDK v2 for S3
 
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
 }

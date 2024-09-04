@@ -40,6 +40,7 @@ public class QuestionController {
             String messageId = "1";  // 첫 메시지이므로 ID는 1
             String messageTime = LocalDateTime.now().withNano(0).toString();
             String audioUrl = null;
+//            String audioUrl = "s3://engking-voice-bucket/audio/" + memberId + "/" + questionResponseDto.getChatRoomId() + "/" + messageId + ".mp3";
 
             boolean saveSuccess = questionService.saveChatMessageToDynamoDB(
                     questionResponseDto.getChatRoomId(),
@@ -139,21 +140,23 @@ public class QuestionController {
         String AnswerAudioUrl = null;
 
         if (endRequest) {
+            int number = Integer.parseInt(messageId);
+            number -= 1;
+            String nextMessageId = Integer.toString(number);
+
+            boolean deleteSuccess = quizService.deleteChatMessageByChatRoomIdSenderIdAndMessageId("AI", chatRoomId, nextMessageId);
             QuestionResponseDto questionResponseDto = questionService.endQuestion(memberId, chatRoomId);
             String messageTime = LocalDateTime.now().withNano(0).toString();
 
             if (questionResponseDto != null && questionResponseDto.getScore() != null && questionResponseDto.getFeedback() != null) {
                 boolean updateSuccess = questionService.updateChatRoomScoreAndFeedback(chatRoomId, memberId, questionResponseDto.getScore(), questionResponseDto.getFeedback());
-                boolean updateMessageSuccess = quizService.saveScoreAndFeedbackToDynamoDB(chatRoomId, messageTime, messageId, "AI", AnswerAudioUrl, questionResponseDto.getScore(), questionResponseDto.getFeedback());
+                boolean updateMessageSuccess = quizService.saveScoreAndFeedbackToDynamoDB(chatRoomId, messageTime, nextMessageId, "AI", AnswerAudioUrl, questionResponseDto.getScore(), questionResponseDto.getFeedback());
 
                 if (!updateSuccess || !updateMessageSuccess) {
                     log.error("Failed to update score and feedback in DynamoDB.");
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
                 }
 
-                int number = Integer.parseInt(messageId);
-                number += 1;
-                String nextMessageId = Integer.toString(number);
                 questionResponseDto.setChatRoomId(chatRoomId);
                 questionResponseDto.setMemberId(memberId);
                 questionResponseDto.setMessageId(nextMessageId);

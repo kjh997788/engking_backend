@@ -14,6 +14,7 @@ import software.amazon.awssdk.services.dynamodb.model.*;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.List;
 
 @Service
 public class QuizService {
@@ -251,6 +252,68 @@ public class QuizService {
             return false;
         }
     }
+
+    // 특정 chatRoomId, senderId, messageId로 항목 삭제
+    public boolean deleteChatMessageByChatRoomIdSenderIdAndMessageId(String senderId, String chatRoomId, String messageId) {
+        // Step 1: Query to find all items with the specified ChatRoomId
+        Map<String, AttributeValue> expressionAttributeValues = new HashMap<>();
+        expressionAttributeValues.put(":ChatRoomId", AttributeValue.builder().s(chatRoomId).build());
+
+        QueryRequest queryRequest = QueryRequest.builder()
+                .tableName("EngKing-ChatMessages")
+                .keyConditionExpression("ChatRoomId = :ChatRoomId")
+                .expressionAttributeValues(expressionAttributeValues)
+                .build();
+
+        try {
+            QueryResponse queryResponse = dynamoDbClient.query(queryRequest);
+            List<Map<String, AttributeValue>> items = queryResponse.items();
+
+            if (items.isEmpty()) {
+                System.err.println("No items found with the specified ChatRoomId.");
+                return false; // 조회된 항목이 없을 경우
+            }
+
+            // Step 2: Find the item with the matching SenderId and MessageId
+            for (Map<String, AttributeValue> item : items) {
+                String currentSenderId = item.get("SenderId").s();
+                String currentMessageId = item.get("MessageId").s();
+
+                if (currentSenderId.equals(senderId) && currentMessageId.equals(messageId)) {
+                    // Found the item to delete
+                    String messageTime = item.get("MessageTime").s(); // Get MessageTime from the item
+
+                    // Step 3: Delete the item using ChatRoomId and MessageTime
+                    Map<String, AttributeValue> key = new HashMap<>();
+                    key.put("ChatRoomId", AttributeValue.builder().s(chatRoomId).build());
+                    key.put("MessageTime", AttributeValue.builder().s(messageTime).build());
+
+                    DeleteItemRequest deleteRequest = DeleteItemRequest.builder()
+                            .tableName("EngKing-ChatMessages")
+                            .key(key)
+                            .build();
+
+                    try {
+                        dynamoDbClient.deleteItem(deleteRequest);
+                        // 삭제 성공
+                        return true;
+                    } catch (Exception e) {
+                        System.err.println("Failed to delete chat message: " + e.getMessage());
+                        return false;
+                    }
+                }
+            }
+
+            // If no matching item was found
+            System.err.println("No matching item found with the specified SenderId and MessageId.");
+            return false;
+
+        } catch (Exception e) {
+            System.err.println("Failed to query chat messages by ChatRoomId: " + e.getMessage());
+            return false;
+        }
+    }
+
 
 
     // 추가적인 비즈니스 로직 구현...

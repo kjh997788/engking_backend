@@ -134,21 +134,26 @@ public class QuizController {
         String chatRoomId = questionRequestDto.getChatRoomId();
         String messageId = questionRequestDto.getMessageId();
         Boolean endRequest = questionRequestDto.isEndRequest();
+        String AnswerAudioUrl = null;
 
         if (endRequest) {
+            int number = Integer.parseInt(messageId);
+            number -= 1;
+            String nextMessageId = Integer.toString(number);
+
+            boolean deleteSuccess = quizService.deleteChatMessageByChatRoomIdSenderIdAndMessageId("AI", chatRoomId, nextMessageId);
             QuestionResponseDto questionResponseDto = quizService.endQuiz(memberId, chatRoomId);
+            String messageTime = LocalDateTime.now().withNano(0).toString();
 
             if (questionResponseDto != null && questionResponseDto.getScore() != null && questionResponseDto.getFeedback() != null) {
                 boolean updateSuccess = quizService.updateChatRoomScoreAndFeedback(chatRoomId, memberId, questionResponseDto.getScore(), questionResponseDto.getFeedback());
+                boolean updateMessageSuccess = quizService.saveScoreAndFeedbackToDynamoDB(chatRoomId, messageTime, nextMessageId, "AI", AnswerAudioUrl, questionResponseDto.getScore(), questionResponseDto.getFeedback());
 
-                if (!updateSuccess) {
+                if (!updateSuccess || !updateMessageSuccess) {
                     log.error("Failed to update score and feedback in DynamoDB.");
                     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
                 }
 
-                int number = Integer.parseInt(messageId);
-                number += 1;
-                String nextMessageId = Integer.toString(number);
                 questionResponseDto.setChatRoomId(chatRoomId);
                 questionResponseDto.setMemberId(memberId);
                 questionResponseDto.setMessageId(nextMessageId);
