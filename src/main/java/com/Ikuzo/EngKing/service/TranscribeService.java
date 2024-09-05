@@ -14,10 +14,7 @@ public class TranscribeService {
 
     private final TranscribeClient transcribeClient;
 
-    public Boolean startTranscriptionJob(String memberId, String chatRoomId, String messageId) {
-        // 형식에 맞게 LocalDateTime을 String으로 변환합니다.
-        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
-
+    public Boolean startTranscriptionJob(String memberId, String chatRoomId, String messageId, String timestamp) {
         String jobName = String.format("audio-%s-%s-%s", memberId, messageId, timestamp);
         String mediaUri = String.format("s3://engking-voice-bucket/audio/%s/%s/%s.mp3", memberId, chatRoomId, messageId);
 //        String outputPath = String.format("audio/%s/%s/%s", memberId, chatRoomId, messageId); - 불가능
@@ -38,8 +35,8 @@ public class TranscribeService {
         return true;
     }
 
-    public boolean waitForTranscriptionToComplete(String memberId, String chatRoomId, String messageId) {
-        String jobName = String.format("audio-%s-%s-%s", memberId, chatRoomId, messageId);
+    public boolean waitForTranscriptionToComplete(String memberId, String messageId, String timestamp) {
+        String jobName = String.format("audio-%s-%s-%s", memberId, messageId, timestamp);
 
         try {
             while (true) {
@@ -53,15 +50,18 @@ public class TranscribeService {
                 if (status == TranscriptionJobStatus.COMPLETED) {
                     return true;
                 } else if (status == TranscriptionJobStatus.FAILED) {
-                    System.out.print("Transcription job failed.");
+                    // 실패한 경우 실패 원인을 로깅
+                    String failureReason = getResponse.transcriptionJob().failureReason();
+                    System.out.print("Transcription job failed. Reason: " + failureReason);
                     return false;
                 }
 
                 // 잠시 대기 후 다시 확인 (예: 5초)
-                Thread.sleep(5000);
+                Thread.sleep(1500);
             }
         } catch (Exception e) {
             System.out.print("Error while waiting for transcription to complete");
+            e.printStackTrace();  // Exception의 자세한 내용을 로그에 출력
             return false;
         }
     }

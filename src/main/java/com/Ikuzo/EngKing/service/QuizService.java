@@ -78,7 +78,7 @@ public class QuizService {
     // 답변 전송 및 다음 질문 요청
     public String createQuiz(String memberId, String chatRoomId, String input, String difficulty, String quiz_type, Boolean first) {
 
-        String url = "http://13.231.43.88:5000/quiz";
+        String url = "http://52.195.5.116:5000/quiz";
         String requestBody = String.format("{\"user_id\": \"%s\", \"conversation_id\": \"%s\", \"input\": \"%s\", \"difficulty\": \"%s\", \"quiz_type\": \"%s\", \"first\": \"%s\"}",
                 memberId, chatRoomId, input, difficulty, quiz_type, first);
 
@@ -149,7 +149,7 @@ public class QuizService {
 
     // 대화 종료
     public QuestionResponseDto endQuiz(String memberId, String chatRoomId) {
-        String url = "http://13.231.43.88:5000/quiz/evaluate";
+        String url = "http://52.195.5.116:5000/quiz/evaluate";
         String requestBody = String.format("{\"user_id\": \"%s\", \"conversation_id\": \"%s\"}",
                 memberId, chatRoomId);
 

@@ -79,7 +79,7 @@ public class QuestionService {
     // 답변 전송 및 다음 질문 요청
     public String createQuestion(String memberId, String chatRoomId, String input, String difficulty, String scenario, Boolean first) {
 
-        String url = "http://13.231.43.88:5000/chat";
+        String url = "http://52.195.5.116:5000/chat";
         String requestBody = String.format("{\"user_id\": \"%s\", \"conversation_id\": \"%s\", \"input\": \"%s\", \"difficulty\": \"%s\", \"scenario\": \"%s\", \"first\": \"%s\"}",
                 memberId, chatRoomId, input, difficulty, scenario, first);
 
@@ -150,7 +150,7 @@ public class QuestionService {
 
     // 대화 종료
     public QuestionResponseDto endQuestion(String memberId, String chatRoomId) {
-        String url = "http://13.231.43.88:5000/chat/evaluate";
+        String url = "http://52.195.5.116:5000/chat/evaluate";
         String requestBody = String.format("{\"user_id\": \"%s\", \"conversation_id\": \"%s\"}",
                 memberId, chatRoomId);
 

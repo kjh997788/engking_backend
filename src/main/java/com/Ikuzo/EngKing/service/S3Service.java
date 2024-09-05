@@ -103,9 +103,9 @@ public class S3Service {
     }
 
     // S3에서 JSON 파일을 읽고, 'results.transcripts.transcript' 값을 추출하는 메서드
-    public String getTranscriptFromS3(String memberId, String chatRoomId, String messageId) {
+    public String getTranscriptFromS3(String memberId, String chatRoomId, String messageId, String timestamp) {
         String bucketName = "engking-bucket-dev";
-        String objectKey = String.format("audio-%s-%s-%s.json", memberId, chatRoomId, messageId);
+        String objectKey = String.format("audio-%s-%s-%s.json", memberId, messageId, timestamp);
 
         try {
             // S3에서 JSON 파일 가져오기

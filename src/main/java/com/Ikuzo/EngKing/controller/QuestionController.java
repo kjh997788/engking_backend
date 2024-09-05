@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Slf4j
 @RestController
@@ -93,7 +94,8 @@ public class QuestionController {
         String messageId = questionRequestDto.getMessageId();
 //        String messageText = questionRequestDto.getMessageText();
 // 테스트 코드 - transcribe 시작
-        Boolean transcribeStarted = transcribeService.startTranscriptionJob(memberId, chatRoomId, messageId);
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        Boolean transcribeStarted = transcribeService.startTranscriptionJob(memberId, chatRoomId, messageId, timestamp);
 
         if (!transcribeStarted) {
             log.error("Failed to start transcription job.");
@@ -101,14 +103,14 @@ public class QuestionController {
         }
 
         // Transcribe 작업이 완료될 때까지 대기
-        boolean isTranscribeCompleted = transcribeService.waitForTranscriptionToComplete(memberId, chatRoomId, messageId);
+        boolean isTranscribeCompleted = transcribeService.waitForTranscriptionToComplete(memberId, messageId, timestamp);
         if (!isTranscribeCompleted) {
             log.error("Transcription job did not complete successfully.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
         }
 
         // Transcribe 작업이 완료된 후 S3에서 텍스트 가져오기
-        String messageText = s3Service.getTranscriptFromS3(memberId, chatRoomId, messageId);
+        String messageText = s3Service.getTranscriptFromS3(memberId, chatRoomId, messageId, timestamp);
 
         // 정상 코드
         String topic = questionRequestDto.getTopic();

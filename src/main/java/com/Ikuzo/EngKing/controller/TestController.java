@@ -29,6 +29,7 @@ public class TestController {
         QuestionResponseDto questionResponseDto = new QuestionResponseDto();
         String preSignedUrl = s3Service.generateUploadPreSignedUrl(memberId, chatRoomId, messageId);
         questionResponseDto.setAudioFileUrl(preSignedUrl);
+        questionResponseDto.setSuccess(true);
 
         return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
     }
