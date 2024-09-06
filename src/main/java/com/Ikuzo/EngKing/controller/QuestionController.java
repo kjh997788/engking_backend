@@ -203,7 +203,7 @@ public class QuestionController {
                 boolean updateMessageSuccess = quizService.saveScoreAndFeedbackToDynamoDB(chatRoomId, messageTime, nextMessageId, "AI", AnswerAudioUrl, questionResponseDto.getScore(), questionResponseDto.getFeedback());
 
                 // 테스트 코드 추가 삭제 필요
-                Boolean polly = pollyService.synthesizeTextAndUploadToS3(memberId, chatRoomId, nextMessageId, questionResponseDto.getFeedback());
+//                Boolean polly = pollyService.synthesizeTextAndUploadToS3(memberId, chatRoomId, nextMessageId, questionResponseDto.getFeedback());
                 
                 if (!updateSuccess || !updateMessageSuccess) {
                     log.error("Failed to update score and feedback in DynamoDB.");
@@ -217,7 +217,7 @@ public class QuestionController {
                 questionResponseDto.setSuccess(true);
 
                 // 테스트 코드 추가 삭제 필요
-                questionResponseDto.setAudioFileUrl(s3Service.generatePreSignedUrl(memberId, chatRoomId, nextMessageId));
+//                questionResponseDto.setAudioFileUrl(s3Service.generatePreSignedUrl(memberId, chatRoomId, nextMessageId));
 
                 return ResponseEntity.status(HttpStatus.OK).body(questionResponseDto);
             } else {
